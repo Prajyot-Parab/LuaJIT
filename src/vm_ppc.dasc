@@ -6169,7 +6169,11 @@ static void emit_asm_debug(BuildCtx *ctx)
 	"\t.byte 0x1\n"
 	"\t.string \"zPR\"\n"
 	"\t.uleb128 0x1\n"
+#if LJ_64
+	"\t.sleb128 -8\n"
+#else
 	"\t.sleb128 -4\n"
+#endif
 	"\t.byte 65\n"
 	"\t.uleb128 6\n"			/* augmentation length */
 	"\t.byte 0x1b\n"			/* pcrel|sdata4 */
@@ -6207,7 +6211,11 @@ static void emit_asm_debug(BuildCtx *ctx)
 	"\t.byte 0x1\n"
 	"\t.string \"zR\"\n"
 	"\t.uleb128 0x1\n"
+#if LJ_64
+	"\t.sleb128 -8\n"
+#else
 	"\t.sleb128 -4\n"
+#endif
 	"\t.byte 65\n"
 	"\t.uleb128 1\n"			/* augmentation length */
 	"\t.byte 0x1b\n"			/* pcrel|sdata4 */
