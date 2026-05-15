@@ -508,10 +508,10 @@
 |
 |// Move table write barrier back. Overwrites mark and tmp.
 |.macro barrierback, tab, mark, tmp
-|  lwz tmp, DISPATCH_GL(gc.grayagain)(DISPATCH)
+|  lp tmp, DISPATCH_GL(gc.grayagain)(DISPATCH)
 |  // Assumes LJ_GC_BLACK is 0x04.
 |   rlwinm mark, mark, 0, 30, 28		// black2gray(tab)
-|  stw tab, DISPATCH_GL(gc.grayagain)(DISPATCH)
+|  stp tab, DISPATCH_GL(gc.grayagain)(DISPATCH)
 |   stb mark, tab->marked
 |  stw tmp, tab->gclist
 |.endmacro
@@ -601,7 +601,7 @@ static void build_subroutines(BuildCtx *ctx)
   |6:
   |  ble >7				// Less results wanted?
   |  // More results wanted. Check stack size and fill up results with nil.
-  |  lwz TMP1, L->maxstack
+  |  lp TMP1, L->maxstack
   |  cmplw BASE, TMP1
   |  bge >8
   |  stw TISNIL, 0(BASE)
@@ -658,7 +658,7 @@ static void build_subroutines(BuildCtx *ctx)
   |     li TISNUM, LJ_TISNUM		// Setup type comparison constants.
   |  lp BASE, L->base
   |     .FPU lus TMP3, 0x59c0		// TOBIT = 2^52 + 2^51 (float).
-  |   lwz DISPATCH, L->glref		// Setup pointer to dispatch table.
+  |   lp DISPATCH, L->glref		// Setup pointer to dispatch table.
   |     li ZERO, 0
   |     .FPU stw TMP3, TMPD
   |  li TMP1, LJ_TFALSE
@@ -712,7 +712,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  // (lua_State *L, TValue *base, int nres1 = 0, ptrdiff_t ef = 0)
   |  saveregs
   |  mr L, CARG1
-  |    lwz DISPATCH, L->glref		// Setup pointer to dispatch table.
+  |    lp DISPATCH, L->glref		// Setup pointer to dispatch table.
   |  mr BASE, CARG2
   |    lbz TMP1, L->status
   |   stw L, SAVE_L
@@ -728,7 +728,7 @@ static void build_subroutines(BuildCtx *ctx)
   |    beq >3
   |
   |  // Resume after yield (like a return).
-  |  stw L, DISPATCH_GL(cur_L)(DISPATCH)
+  |  stp L, DISPATCH_GL(cur_L)(DISPATCH)
   |  mr RA, BASE
   |   lp BASE, L->base
   |     li TISNUM, LJ_TISNUM		// Setup type comparison constants.
@@ -770,7 +770,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  lp TMP1, L:CARG1->cframe
   |    mr L, CARG1
   |   stw CARG3, SAVE_NRES
-  |    lwz DISPATCH, L->glref		// Setup pointer to dispatch table.
+  |    lp DISPATCH, L->glref		// Setup pointer to dispatch table.
   |   stw CARG1, SAVE_L
   |     mr BASE, CARG2
   |    addi DISPATCH, DISPATCH, GG_G2DISP
@@ -779,7 +779,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  stp sp, L->cframe			// Add our C frame to cframe chain.
   |
   |3:  // Entry point for vm_cpcall/vm_resume (BASE = base, PC = ftype).
-  |  stw L, DISPATCH_GL(cur_L)(DISPATCH)
+  |  stp L, DISPATCH_GL(cur_L)(DISPATCH)
   |  lp TMP2, L->base			// TMP2 = old base (used in vmeta_call).
   |     li TISNUM, LJ_TISNUM		// Setup type comparison constants.
   |   lp TMP1, L->top
@@ -816,7 +816,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   lwz TMP0, L:CARG1->stack
   |  stw CARG1, SAVE_L
   |   lp TMP1, L->top
-  |     lwz DISPATCH, L->glref		// Setup pointer to dispatch table.
+  |     lp DISPATCH, L->glref		// Setup pointer to dispatch table.
   |  stw CARG1, SAVE_PC			// Any value outside of bytecode is ok.
   |   sub TMP0, TMP0, TMP1		// Compute -savestack(L, L->top).
   |    lp TMP1, L->cframe
@@ -827,7 +827,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  stw TMP2, SAVE_ERRF		// No error function.
   |    stp TMP1, SAVE_CFRAME
   |    stp sp, L->cframe		// Add our C frame to cframe chain.
-  |     stw L, DISPATCH_GL(cur_L)(DISPATCH)
+  |     stp L, DISPATCH_GL(cur_L)(DISPATCH)
   |  mtctr CARG4
   |  bctrl			// (lua_State *L, lua_CFunction func, void *ud)
   |.if PPE
@@ -1736,7 +1736,7 @@ static void build_subroutines(BuildCtx *ctx)
   |//-- Base library: catch errors ----------------------------------------
   |
   |.ffunc pcall
-  |    lwz TMP1, L->maxstack
+  |    lp TMP1, L->maxstack
   |    add TMP2, BASE, NARGS8:RC
   |  cmplwi NARGS8:RC, 8
   |   lbz TMP3, DISPATCH_GL(hookmask)(DISPATCH)
@@ -1752,7 +1752,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  b ->vm_call_dispatch
   |
   |.ffunc xpcall
-  |     lwz TMP1, L->maxstack
+  |     lp TMP1, L->maxstack
   |     add TMP2, BASE, NARGS8:RC
   |  cmplwi NARGS8:RC, 16
   |   lwz CARG3, 8(BASE)
@@ -1855,11 +1855,11 @@ static void build_subroutines(BuildCtx *ctx)
   |  lp TMP3, L:SAVE0->top
   |    li_vmstate INTERP
   |  lp BASE, L->base
-  |    stw L, DISPATCH_GL(cur_L)(DISPATCH)
+  |    stp L, DISPATCH_GL(cur_L)(DISPATCH)
   |    st_vmstate
   |   bgt >8
   |  sub RD, TMP3, TMP2
-  |   lwz TMP0, L->maxstack
+  |   lp TMP0, L->maxstack
   |  cmplwi RD, 0
   |   add TMP1, BASE, RD
   |  beq >6				// No results?
@@ -2710,7 +2710,7 @@ static void build_subroutines(BuildCtx *ctx)
   |    add TMP1, BASE, NARGS8:RC
   |   lwz PC, FRAME_PC(BASE)		// Fallback may overwrite PC.
   |    addi TMP0, TMP1, 8*LUA_MINSTACK
-  |     lwz TMP2, L->maxstack
+  |     lp TMP2, L->maxstack
   |   stw PC, SAVE_PC			// Redundant (but a defined value).
   |  .toc lp TMP3, 0(TMP3)
   |  cmplw TMP0, TMP2
@@ -2999,7 +2999,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   subi CARG3, CARG3, 2
   |  stp BASE, L->base
   |   stw CARG4, DISPATCH_J(parent)(DISPATCH)
-  |  stw TMP1, DISPATCH_GL(jit_base)(DISPATCH)
+  |  stp TMP1, DISPATCH_GL(jit_base)(DISPATCH)
   |  addi CARG1, DISPATCH, GG_DISP2J
   |   stw CARG3, DISPATCH_J(exitno)(DISPATCH)
   |  addi CARG2, sp, 16
@@ -3033,7 +3033,7 @@ static void build_subroutines(BuildCtx *ctx)
   |    li TMP2, 0
   |   stw MULTRES, SAVE_MULTRES
   |  lwz TMP1, LFUNC:RB->pc
-  |    stw TMP2, DISPATCH_GL(jit_base)(DISPATCH)
+  |    stp TMP2, DISPATCH_GL(jit_base)(DISPATCH)
   |  lwz KBASE, PC2PROTO(k)(TMP1)
   |  // Setup type comparison constants.
   |  li TISNUM, LJ_TISNUM
@@ -4580,7 +4580,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
 
   case BC_UCLO:
     |  // RA = level*8, RD = target
-    |  lwz TMP1, L->openupval
+    |  lp TMP1, L->openupval
     |  branch_RD			// Do this first since RD is not saved.
     |   stp BASE, L->base
     |  cmplwi TMP1, 0
@@ -5483,7 +5483,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ins_next
     |
     |5:  // Copy all varargs.
-    |  lwz TMP0, L->maxstack
+    |  lp TMP0, L->maxstack
     |   li MULTRES, 8			// MULTRES = (0+1)*8
     |  bley <3				// No vararg slots?
     |  add TMP2, RA, TMP1
@@ -5917,7 +5917,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  lwzx TRACE:TMP2, TMP1, RD
     |  clrso TMP1
     |  lp TMP2, TRACE:TMP2->mcode
-    |   stw BASE, DISPATCH_GL(jit_base)(DISPATCH)
+    |   stp BASE, DISPATCH_GL(jit_base)(DISPATCH)
     |  mtctr TMP2
     |   addi JGL, DISPATCH, GG_DISP2G+32768
     |   stw L, DISPATCH_GL(tmpbuf.L)(DISPATCH)
@@ -5947,7 +5947,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
 #endif
   case BC_IFUNCF:
     |  // BASE = new base, RA = BASE+framesize*8, RB = LFUNC, RC = nargs*8
-    |  lwz TMP2, L->maxstack
+    |  lp TMP2, L->maxstack
     |   lbz TMP1, -4+PC2PROTO(numparams)(PC)
     |    lwz KBASE, -4+PC2PROTO(k)(PC)
     |  cmplw RA, TMP2
@@ -5981,7 +5981,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
 
   case BC_IFUNCV:
     |  // BASE = new base, RA = BASE+framesize*8, RB = LFUNC, RC = nargs*8
-    |  lwz TMP2, L->maxstack
+    |  lp TMP2, L->maxstack
     |   add TMP1, BASE, RC
     |  add TMP0, RA, RC
     |   stw LFUNC:RB, 4(TMP1)		// Store copy of LFUNC.
@@ -6027,7 +6027,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
       |  lp RD, DISPATCH_GL(wrapf)(DISPATCH)
     }
     |   add TMP1, RA, NARGS8:RC
-    |   lwz TMP2, L->maxstack
+    |   lp TMP2, L->maxstack
     |  .toc lp TMP3, 0(RD)
     |    add RC, BASE, NARGS8:RC
     |   stp BASE, L->base
@@ -6055,7 +6055,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  lp TMP1, L->top
     |    li_vmstate INTERP
     |  lwz PC, FRAME_PC(BASE)		// Fetch PC of caller.
-    |    stw L, DISPATCH_GL(cur_L)(DISPATCH)
+    |    stp L, DISPATCH_GL(cur_L)(DISPATCH)
     |   sub RA, TMP1, RD		// RA = L->top - nresults*8
     |    st_vmstate
     |  b ->vm_returnc
