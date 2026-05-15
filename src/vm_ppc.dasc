@@ -63,7 +63,11 @@
 |.endif
 |.macro .toc, a, b; a, b; .endmacro
 |.else  // No TOC.
+|.if ELFV2
+|.macro blex, target; bl extern target; .endmacro
+|.else
 |.macro blex, target; bl extern target@plt; .endmacro
+|.endif
 |.macro .toc, a, b; .endmacro
 |.endif
 |.macro .tocenv, a, b; .if TOCENV; a, b; .endif; .endmacro
