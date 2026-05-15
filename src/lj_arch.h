@@ -546,8 +546,10 @@
 #endif
 #elif LJ_TARGET_PPC
 #if defined(_LITTLE_ENDIAN) && (!defined(_BYTE_ORDER) || (_BYTE_ORDER == _LITTLE_ENDIAN))
+#if LJ_ARCH_BITS == 32
 #error "No support for little-endian PPC32"
 #undef LJ_TARGET_PPC
+#endif
 #endif
 #if defined(__NO_FPRS__) && !defined(_SOFT_FLOAT)
 #error "No support for PPC/e500, use LuaJIT 2.0"
