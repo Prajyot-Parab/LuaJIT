@@ -6180,13 +6180,21 @@ static void emit_asm_debug(BuildCtx *ctx)
 #if !LJ_NO_UNWIND
     fprintf(ctx->fp, "\t.section .eh_frame,\"a\",@progbits\n");
     fprintf(ctx->fp,
-	".Lframe1:\n"
-	"\t.long .LECIE1-.LSCIE1\n"
-	".LSCIE1:\n"
-	"\t.long 0\n"
-	"\t.byte 0x1\n"
-	"\t.string \"zPR\"\n"
-	"\t.uleb128 0x1\n"
+ ".Lframe1:\n"
+ "\t.long .LECIE1-.LSCIE1\n"
+ ".LSCIE1:\n"
+ "\t.long 0\n"
+#if LJ_64
+ "\t.byte 0x4\n"			/* version 4 */
+ "\t.string \"zPR\"\n"
+ "\t.byte 0x8\n"			/* address_size = 8 */
+ "\t.byte 0x0\n"			/* segment_size = 0 */
+ "\t.uleb128 0x1\n"
+#else
+ "\t.byte 0x1\n"			/* version 1 */
+ "\t.string \"zPR\"\n"
+ "\t.uleb128 0x1\n"
+#endif
 #if LJ_64
 	"\t.sleb128 -8\n"
 #else
@@ -6234,13 +6242,21 @@ static void emit_asm_debug(BuildCtx *ctx)
 	".LEFDE2:\n\n");
 #if LJ_HASFFI
     fprintf(ctx->fp,
-	".Lframe2:\n"
-	"\t.long .LECIE2-.LSCIE2\n"
-	".LSCIE2:\n"
-	"\t.long 0\n"
-	"\t.byte 0x1\n"
-	"\t.string \"zR\"\n"
-	"\t.uleb128 0x1\n"
+ ".Lframe2:\n"
+ "\t.long .LECIE2-.LSCIE2\n"
+ ".LSCIE2:\n"
+ "\t.long 0\n"
+#if LJ_64
+ "\t.byte 0x4\n"			/* version 4 */
+ "\t.string \"zR\"\n"
+ "\t.byte 0x8\n"			/* address_size = 8 */
+ "\t.byte 0x0\n"			/* segment_size = 0 */
+ "\t.uleb128 0x1\n"
+#else
+ "\t.byte 0x1\n"			/* version 1 */
+ "\t.string \"zR\"\n"
+ "\t.uleb128 0x1\n"
+#endif
 #if LJ_64
 	"\t.sleb128 -8\n"
 #else
