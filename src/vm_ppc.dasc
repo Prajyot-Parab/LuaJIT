@@ -64,7 +64,8 @@
 |.macro .toc, a, b; a, b; .endmacro
 |.else  // No TOC.
 |.if ELFV2
-|.macro blex, target; bl extern target; .endmacro
+|// ELFv2 ABI: no function descriptors, but still needs nop after bl for linker
+|.macro blex, target; bl extern target; nop; .endmacro
 |.else
 |.macro blex, target; bl extern target@plt; .endmacro
 |.endif
