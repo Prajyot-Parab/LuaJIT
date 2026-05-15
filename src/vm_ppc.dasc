@@ -6175,10 +6175,17 @@ static void emit_asm_debug(BuildCtx *ctx)
 	"\t.sleb128 -4\n"
 #endif
 	"\t.byte 65\n"
+#if LJ_64
+	"\t.uleb128 10\n"			/* augmentation length */
+	"\t.byte 0x1c\n"			/* pcrel|sdata8 */
+	"\t.quad lj_err_unwind_dwarf-.\n"
+	"\t.byte 0x1c\n"			/* pcrel|sdata8 */
+#else
 	"\t.uleb128 6\n"			/* augmentation length */
 	"\t.byte 0x1b\n"			/* pcrel|sdata4 */
 	"\t.long lj_err_unwind_dwarf-.\n"
 	"\t.byte 0x1b\n"			/* pcrel|sdata4 */
+#endif
 	"\t.byte 0xc\n\t.uleb128 1\n\t.uleb128 0\n"
 	"\t.align 2\n"
 	".LECIE1:\n\n");
@@ -6187,8 +6194,13 @@ static void emit_asm_debug(BuildCtx *ctx)
 	"\t.long .LEFDE2-.LASFDE2\n"
 	".LASFDE2:\n"
 	"\t.long .LASFDE2-.Lframe1\n"
+#if LJ_64
+	"\t.quad .Lbegin-.\n"
+	"\t.quad %d\n"
+#else
 	"\t.long .Lbegin-.\n"
 	"\t.long %d\n"
+#endif
 	"\t.uleb128 0\n"			/* augmentation length */
 	"\t.byte 0xe\n\t.uleb128 %d\n"
 	"\t.byte 0x11\n\t.uleb128 65\n\t.sleb128 -1\n"
