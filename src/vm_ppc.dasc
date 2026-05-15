@@ -708,7 +708,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  bl extern lj_state_growstack	// (lua_State *L, int n)
   |  lp BASE, L->base
   |  lp RC, L->top
-  |  lwz LFUNC:RB, FRAME_FUNC(BASE)
+  |  lp LFUNC:RB, FRAME_FUNC(BASE)
   |  sub RC, RC, BASE
   |  // BASE = new base, RB = LFUNC/CFUNC, RC = nargs*8, FRAME_PC(BASE) = PC
   |  ins_callt				// Just retry the call.
@@ -811,7 +811,7 @@ static void build_subroutines(BuildCtx *ctx)
   |->vm_call_dispatch:
   |  // TMP2 = old base, BASE = new base, RC = nargs*8, PC = caller PC
   |  lwz TMP0, FRAME_PC(BASE)
-  |   lwz LFUNC:RB, FRAME_FUNC(BASE)
+  |   lp LFUNC:RB, FRAME_FUNC(BASE)
   |  checkfunc TMP0; bne ->vmeta_call
   |
   |->vm_call_dispatch_f:
@@ -989,7 +989,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  lp BASE, L->top
   |  stw PC, -16(BASE)			// [cont|PC]
   |   add PC, TMP1, BASE
-  |  lwz LFUNC:RB, FRAME_FUNC(BASE)	// Guaranteed to be a function here.
+  |  lp LFUNC:RB, FRAME_FUNC(BASE)	// Guaranteed to be a function here.
   |   li NARGS8:RC, 16			// 2 args for func(t, k).
   |  b ->vm_call_dispatch_f
   |
@@ -1081,7 +1081,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  lp BASE, L->top
   |  stw PC, -16(BASE)			// [cont|PC]
   |   add PC, TMP1, BASE
-  |  lwz LFUNC:RB, FRAME_FUNC(BASE)	// Guaranteed to be a function here.
+  |  lp LFUNC:RB, FRAME_FUNC(BASE)	// Guaranteed to be a function here.
   |   li NARGS8:RC, 24			// 3 args for func(t, k, v)
   |.if FPU
   |  stfd f0, 16(BASE)			// Copy value to third argument.
@@ -1290,7 +1290,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  add CARG3, BASE, RC
   |   mr SAVE0, NARGS8:RC
   |  bl extern lj_meta_call	// (lua_State *L, TValue *func, TValue *top)
-  |  lwz LFUNC:RB, FRAME_FUNC(BASE)	// Guaranteed to be a function here.
+  |  lp LFUNC:RB, FRAME_FUNC(BASE)	// Guaranteed to be a function here.
   |   addi NARGS8:RC, SAVE0, 8		// Got one more argument now.
   |  ins_call
   |
@@ -1305,7 +1305,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  bl extern lj_meta_call	// (lua_State *L, TValue *func, TValue *top)
   |  lwz TMP1, FRAME_PC(BASE)
   |   addi NARGS8:RC, SAVE0, 8		// Got one more argument now.
-  |   lwz LFUNC:RB, FRAME_FUNC(RA)	// Guaranteed to be a function here.
+  |   lp LFUNC:RB, FRAME_FUNC(RA)	// Guaranteed to be a function here.
   |  b ->BC_CALLT_Z
   |
   |//-- Argument coercion for 'for' statement ------------------------------
@@ -1472,7 +1472,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  checkstr CARG4; bne >4
   |   cmpw TMP0, STR:RC; beq >5
   |4:
-  |  lwz NODE:TMP2, NODE:TMP2->next
+  |  lp NODE:TMP2, NODE:TMP2->next
   |  cmplwi NODE:TMP2, 0
   |  beq ->fff_restv			// Not found, keep default result.
   |  b <3
@@ -1584,7 +1584,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  bgt ->fff_res			// Found key/value.
   |   li CARG3, LJ_TNIL
   |  beq ->fff_restv			// End of traversal: return nil.
-  |   lwz CFUNC:RB, FRAME_FUNC(BASE)
+  |   lp CFUNC:RB, FRAME_FUNC(BASE)
   |   li NARGS8:RC, 2*8
   |  b ->fff_fallback			// Invalid key.
   |
@@ -2737,7 +2737,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  bgt ->fff_res			// Returned nresults+1?
   |1:  // Returned 0 or -1: retry fast path.
   |  lp TMP0, L->top
-  |   lwz LFUNC:RB, FRAME_FUNC(BASE)
+  |   lp LFUNC:RB, FRAME_FUNC(BASE)
   |  sub NARGS8:RC, TMP0, BASE
   |  bne ->vm_call_tail			// Returned -1?
   |  ins_callt				// Returned 0: retry fast path.
@@ -2774,7 +2774,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  mtlr SAVE0
   |    lp TMP0, L->top
   |   sub NARGS8:RC, TMP0, BASE
-  |   lwz CFUNC:RB, FRAME_FUNC(BASE)
+  |   lp CFUNC:RB, FRAME_FUNC(BASE)
   |  blr
   |
   |//-----------------------------------------------------------------------
@@ -2887,7 +2887,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   stw ZERO, SAVE_PC			// Invalidate for subsequent line hook.
   |  sub NARGS8:RC, TMP0, BASE
   |  add RA, BASE, RA
-  |  lwz LFUNC:RB, FRAME_FUNC(BASE)
+  |  lp LFUNC:RB, FRAME_FUNC(BASE)
   |  lwz INS, -4(PC)
   |  mtctr CRET1
   |  bctr
@@ -3037,7 +3037,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  li TMP2, -LUA_ERRERR
   |  cmplw CARG1, TMP2
   |  bge >9				// Check for error from exit.
-  |  lwz LFUNC:RB, FRAME_FUNC(BASE)
+  |  lp LFUNC:RB, FRAME_FUNC(BASE)
   |   slwi MULTRES, CARG1, 3
   |    li TMP2, 0
   |   stw MULTRES, SAVE_MULTRES
@@ -3396,7 +3396,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   mr L, CRET1
   |     .FPU stw TMP3, TMPD
   |     .FPU lus TMP0, 0x4338		// Hiword of 2^52 + 2^51 (double)
-  |  lwz LFUNC:RB, FRAME_FUNC(BASE)
+  |  lp LFUNC:RB, FRAME_FUNC(BASE)
   |     .FPU ori TMP3, TMP3, 0x0004	// TONUM = 2^52 + 2^51 + 2^31 (float).
   |     .FPU stw TMP0, TONUM_HI
   |     li TISNIL, LJ_TNIL
@@ -4461,10 +4461,10 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
 
   case BC_UGET:
     |  // RA = dst*8, RD = uvnum*8
-    |  lwz LFUNC:RB, FRAME_FUNC(BASE)
+    |  lp LFUNC:RB, FRAME_FUNC(BASE)
     |   srwi RD, RD, 1
     |   addi RD, RD, offsetof(GCfuncL, uvptr)
-    |  lwzx UPVAL:RB, LFUNC:RB, RD
+    |  lpx UPVAL:RB, LFUNC:RB, RD
     |  ins_next1
     |  lwz TMP1, UPVAL:RB->v
     |.if FPU
@@ -4480,7 +4480,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     break;
   case BC_USETV:
     |  // RA = uvnum*8, RD = src*8
-    |  lwz LFUNC:RB, FRAME_FUNC(BASE)
+    |  lp LFUNC:RB, FRAME_FUNC(BASE)
     |    srwi RA, RA, 1
     |    addi RA, RA, offsetof(GCfuncL, uvptr)
     |.if FPU
@@ -4489,7 +4489,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   lwzux CARG1, RD, BASE
     |   lwz CARG3, 4(RD)
     |.endif
-    |  lwzx UPVAL:RB, LFUNC:RB, RA
+    |  lpx UPVAL:RB, LFUNC:RB, RA
     |  lbz TMP3, UPVAL:RB->marked
     |   lwz CARG2, UPVAL:RB->v
     |  andix. TMP3, TMP3, LJ_GC_BLACK	// isblack(uv)
@@ -4522,13 +4522,13 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     break;
   case BC_USETS:
     |  // RA = uvnum*8, RD = str_const*8 (~)
-    |  lwz LFUNC:RB, FRAME_FUNC(BASE)
+    |  lp LFUNC:RB, FRAME_FUNC(BASE)
     |   srwi TMP1, RD, 1
     |    srwi RA, RA, 1
     |   subfic TMP1, TMP1, -4
     |    addi RA, RA, offsetof(GCfuncL, uvptr)
     |   lwzx STR:TMP1, KBASE, TMP1	// KBASE-4-str_const*4
-    |  lwzx UPVAL:RB, LFUNC:RB, RA
+    |  lpx UPVAL:RB, LFUNC:RB, RA
     |  lbz TMP3, UPVAL:RB->marked
     |   lwz CARG2, UPVAL:RB->v
     |  andix. TMP3, TMP3, LJ_GC_BLACK	// isblack(uv)
@@ -4553,7 +4553,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     break;
   case BC_USETN:
     |  // RA = uvnum*8, RD = num_const*8
-    |  lwz LFUNC:RB, FRAME_FUNC(BASE)
+    |  lp LFUNC:RB, FRAME_FUNC(BASE)
     |   srwi RA, RA, 1
     |   addi RA, RA, offsetof(GCfuncL, uvptr)
     |.if FPU
@@ -4562,7 +4562,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |    lwzux TMP2, RD, KBASE
     |    lwz TMP3, 4(RD)
     |.endif
-    |  lwzx UPVAL:RB, LFUNC:RB, RA
+    |  lpx UPVAL:RB, LFUNC:RB, RA
     |  ins_next1
     |  lwz TMP1, UPVAL:RB->v
     |.if FPU
@@ -4575,12 +4575,12 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     break;
   case BC_USETP:
     |  // RA = uvnum*8, RD = primitive_type*8 (~)
-    |  lwz LFUNC:RB, FRAME_FUNC(BASE)
+    |  lp LFUNC:RB, FRAME_FUNC(BASE)
     |   srwi RA, RA, 1
     |    srwi TMP0, RD, 3
     |   addi RA, RA, offsetof(GCfuncL, uvptr)
     |    not TMP0, TMP0
-    |  lwzx UPVAL:RB, LFUNC:RB, RA
+    |  lpx UPVAL:RB, LFUNC:RB, RA
     |  ins_next1
     |  lwz TMP1, UPVAL:RB->v
     |  stw TMP0, 0(TMP1)
@@ -4672,7 +4672,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  // RA = src*8, RD = str_const*8 (~)
     |  lwz LFUNC:TMP2, FRAME_FUNC(BASE)
     |   srwi TMP1, RD, 1
-    |  lwz TAB:RB, LFUNC:TMP2->env
+    |  lp TAB:RB, LFUNC:TMP2->env
     |   subfic TMP1, TMP1, -4
     |   lwzx STR:RC, KBASE, TMP1	// KBASE-4-str_const*4
     if (op == BC_GGET) {
@@ -4784,7 +4784,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ins_next
     |
     |4:  // Follow hash chain.
-    |  lwz NODE:TMP2, NODE:TMP2->next
+    |  lp NODE:TMP2, NODE:TMP2->next
     |  cmplwi NODE:TMP2, 0
     |  bne <1
     |  // End of hash chain: key not found, nil result.
@@ -4979,7 +4979,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  lwz CARG1, NODE:TMP2->key
     |   lwz TMP0, 4+offsetof(Node, key)(NODE:TMP2)
     |    lwz CARG2, NODE:TMP2->val
-    |     lwz NODE:TMP1, NODE:TMP2->next
+    |     lp NODE:TMP1, NODE:TMP2->next
     |  checkstr CARG1; bne >5
     |   cmpw TMP0, STR:RC; bne >5
     |    checknil CARG2; beq >4		// Key found, but nil value?
