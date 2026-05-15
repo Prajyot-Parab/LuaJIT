@@ -482,7 +482,7 @@ ifeq (ppc,$(TARGET_LJARCH))
     DASM_AFLAGS+= -D PPE -D TOC
   else
     ifneq (,$(findstring LJ_ARCH_BITS 64,$(TARGET_TESTARCH)))
-      DASM_AFLAGS+= -D GPR64 -D P64 -D TOC
+      DASM_AFLAGS+= -D GPR64 -D P64
     endif
   endif
 endif
