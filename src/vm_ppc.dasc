@@ -654,7 +654,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  mr sp, CARG1
   |  mr CRET1, CARG2
   |->vm_unwind_c_eh:			// Landing pad for external unwinder.
-  |  lwz L, SAVE_L
+  |  lp L, SAVE_L
   |  .toc ld TOCREG, SAVE_TOC
   |   li TMP0, ~LJ_VMST_C
   |  lp GL:TMP1, L->glref
@@ -669,7 +669,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  rlwinm sp, CARG1, 0, 0, 29
   |.endif
   |->vm_unwind_ff_eh:			// Landing pad for external unwinder.
-  |  lwz L, SAVE_L
+  |  lp L, SAVE_L
   |  .toc ld TOCREG, SAVE_TOC
   |     li TISNUM, LJ_TISNUM		// Setup type comparison constants.
   |  lp BASE, L->base
@@ -731,7 +731,7 @@ static void build_subroutines(BuildCtx *ctx)
   |    lp DISPATCH, L->glref		// Setup pointer to dispatch table.
   |  mr BASE, CARG2
   |    lbz TMP1, L->status
-  |   stw L, SAVE_L
+  |   stp L, SAVE_L
   |  li PC, FRAME_CP
   |  addi TMP0, sp, CFRAME_RESUME
   |    addi DISPATCH, DISPATCH, GG_G2DISP
@@ -787,7 +787,7 @@ static void build_subroutines(BuildCtx *ctx)
   |    mr L, CARG1
   |   stw CARG3, SAVE_NRES
   |    lp DISPATCH, L->glref		// Setup pointer to dispatch table.
-  |   stw CARG1, SAVE_L
+  |   stp CARG1, SAVE_L
   |     mr BASE, CARG2
   |    addi DISPATCH, DISPATCH, GG_G2DISP
   |   stw CARG1, SAVE_PC		// Any value outside of bytecode is ok.
@@ -830,7 +830,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  saveregs
   |  mr L, CARG1
   |   lp TMP0, L:CARG1->stack
-  |  stw CARG1, SAVE_L
+  |  stp CARG1, SAVE_L
   |   lp TMP1, L->top
   |     lp DISPATCH, L->glref		// Setup pointer to dispatch table.
   |  stw CARG1, SAVE_PC			// Any value outside of bytecode is ok.
@@ -3031,13 +3031,13 @@ static void build_subroutines(BuildCtx *ctx)
   |.endif
   |   lwz PC, SAVE_PC			// Get SAVE_PC.
   |  stw TMP2, 0(sp)
-  |  stw L, SAVE_L			// Set SAVE_L (on-trace resume/yield).
+  |  stp L, SAVE_L			// Set SAVE_L (on-trace resume/yield).
   |  b >1
   |.endif
   |->vm_exit_interp:
   |.if JIT
   |  // CARG1 = MULTRES or negated error code, BASE, PC and JGL set.
-  |  lwz L, SAVE_L
+  |  lp L, SAVE_L
   |  addi DISPATCH, JGL, -GG_DISP2G-32768
   |  stp BASE, L->base
   |1:
