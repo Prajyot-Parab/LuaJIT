@@ -366,8 +366,10 @@
 #define LJ_ARCH_PPC32ON64	1
 #define LJ_ARCH_NOFFI		1
 #elif LJ_ARCH_BITS == 64
-#error "No support for PPC64"
-#undef LJ_TARGET_PPC
+/* PPC64/PPC64LE support - interpreter only mode (JIT NYI) */
+#define LJ_TARGET_GC64		1
+#define LJ_ARCH_NOJIT		1	/* NYI */
+#define LJ_ARCH_NOFFI		1	/* NYI */
 #endif
 
 #if _ARCH_PWR7
