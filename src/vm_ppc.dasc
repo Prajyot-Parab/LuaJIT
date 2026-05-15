@@ -446,7 +446,7 @@
 |// Call decode and dispatch.
 |.macro ins_callt
 |  // BASE = new base, RB = LFUNC/CFUNC, RC = nargs*8, FRAME_PC(BASE) = PC
-|  lwz PC, LFUNC:RB->pc
+|  lp PC, LFUNC:RB->pc
 |  lwz INS, 0(PC)
 |   addi PC, PC, 4
 |  decode_OPP TMP1, INS
@@ -864,7 +864,7 @@ static void build_subroutines(BuildCtx *ctx)
   |.if FFI
   |  ble >1
   |.endif
-  |    lwz TMP1, LFUNC:TMP1->pc
+  |    lp TMP1, LFUNC:TMP1->pc
   |    lwz KBASE, PC2PROTO(k)(TMP1)
   |  // BASE = base, RA = resultptr, RB = meta base
   |  mtctr TMP0
@@ -2842,7 +2842,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  lwz LFUNC:TMP1, FRAME_FUNC(BASE)
   |   addi CARG1, DISPATCH, GG_DISP2J
   |   stw PC, SAVE_PC
-  |  lwz TMP1, LFUNC:TMP1->pc
+  |  lp TMP1, LFUNC:TMP1->pc
   |   mr CARG2, PC
   |   stw L, DISPATCH_J(L)(DISPATCH)
   |  lbz TMP1, PC2PROTO(framesize)(TMP1)
@@ -3032,7 +3032,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   slwi MULTRES, CARG1, 3
   |    li TMP2, 0
   |   stw MULTRES, SAVE_MULTRES
-  |  lwz TMP1, LFUNC:RB->pc
+  |  lp TMP1, LFUNC:RB->pc
   |    stp TMP2, DISPATCH_GL(jit_base)(DISPATCH)
   |  lwz KBASE, PC2PROTO(k)(TMP1)
   |  // Setup type comparison constants.
@@ -3076,7 +3076,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  decode_RA8 TMP0, TMP2
   |  sub TMP1, BASE, TMP0
   |  lwz LFUNC:TMP2, -12(TMP1)
-  |  lwz TMP1, LFUNC:TMP2->pc
+  |  lp TMP1, LFUNC:TMP2->pc
   |  lwz KBASE, PC2PROTO(k)(TMP1)
   |3:
   |   subi RC, MULTRES, 8
@@ -5249,7 +5249,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  decode_RA8 RA, INS
     |  sub TMP1, BASE, RA
     |  lwz LFUNC:TMP1, FRAME_FUNC-8(TMP1)
-    |  lwz TMP1, LFUNC:TMP1->pc
+    |  lp TMP1, LFUNC:TMP1->pc
     |  lwz KBASE, PC2PROTO(k)(TMP1)	// Need to prepare KBASE.
     |  b <4
     |
@@ -5595,7 +5595,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   sub BASE, TMP2, RA
     |  lwz LFUNC:TMP1, FRAME_FUNC(BASE)
     |  ins_next1
-    |  lwz TMP1, LFUNC:TMP1->pc
+    |  lp TMP1, LFUNC:TMP1->pc
     |  lwz KBASE, PC2PROTO(k)(TMP1)
     |  ins_next2
     |
@@ -5644,7 +5644,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   sub BASE, TMP2, RA
     |  lwz LFUNC:TMP1, FRAME_FUNC(BASE)
     |  ins_next1
-    |  lwz TMP1, LFUNC:TMP1->pc
+    |  lp TMP1, LFUNC:TMP1->pc
     |  lwz KBASE, PC2PROTO(k)(TMP1)
     |  ins_next2
     |
