@@ -6117,7 +6117,11 @@ static void emit_asm_debug(BuildCtx *ctx)
 	"\t.byte 0x1\n"
 	"\t.string \"\"\n"
 	"\t.uleb128 0x1\n"
+#if LJ_64
+	"\t.sleb128 -8\n"
+#else
 	"\t.sleb128 -4\n"
+#endif
 	"\t.byte 65\n"
 	"\t.byte 0xc\n\t.uleb128 1\n\t.uleb128 0\n"
 	"\t.align 2\n"
@@ -6127,8 +6131,13 @@ static void emit_asm_debug(BuildCtx *ctx)
 	"\t.long .LEFDE0-.LASFDE0\n"
 	".LASFDE0:\n"
 	"\t.long .Lframe0\n"
+#if LJ_64
+	"\t.quad .Lbegin\n"
+	"\t.quad %d\n"
+#else
 	"\t.long .Lbegin\n"
 	"\t.long %d\n"
+#endif
 	"\t.byte 0xe\n\t.uleb128 %d\n"
 	"\t.byte 0x11\n\t.uleb128 65\n\t.sleb128 -1\n"
 	"\t.byte 0x5\n\t.uleb128 70\n\t.uleb128 55\n",
@@ -6147,12 +6156,21 @@ static void emit_asm_debug(BuildCtx *ctx)
 	"\t.long .LEFDE1-.LASFDE1\n"
 	".LASFDE1:\n"
 	"\t.long .Lframe0\n"
-#if LJ_TARGET_PS3
-	"\t.long .lj_vm_ffi_call\n"
+#if LJ_64
+	 #if LJ_TARGET_PS3
+	"\t.quad .lj_vm_ffi_call\n"
+	 #else
+	"\t.quad lj_vm_ffi_call\n"
+	 #endif
+	"\t.quad %d\n"
 #else
+	 #if LJ_TARGET_PS3
+	"\t.long .lj_vm_ffi_call\n"
+	 #else
 	"\t.long lj_vm_ffi_call\n"
-#endif
+	 #endif
 	"\t.long %d\n"
+#endif
 	"\t.byte 0x11\n\t.uleb128 65\n\t.sleb128 -1\n"
 	"\t.byte 0x8e\n\t.uleb128 2\n"
 	"\t.byte 0xd\n\t.uleb128 0xe\n"
