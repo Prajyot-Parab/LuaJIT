@@ -393,8 +393,15 @@
 |//-----------------------------------------------------------------------
 |
 |// Access to frame relative to BASE.
+|.if P64
+|// FR2 layout for 64-bit: base-2 has func, base-1 has PC
+|.define FRAME_FUNC,	-16
+|.define FRAME_PC,	-8
+|.else
+|// FR1 layout for 32-bit: base-1 has func+PC combined
 |.define FRAME_PC,	-8
 |.define FRAME_FUNC,	-4
+|.endif
 |
 |// Instruction decode.
 |.macro decode_OP4, dst, ins; rlwinm dst, ins, 2, 22, 29; .endmacro
