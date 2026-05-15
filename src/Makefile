@@ -478,16 +478,12 @@ ifeq (ppc,$(TARGET_LJARCH))
   ifneq (,$(findstring LJ_ARCH_PPC32ON64 1,$(TARGET_TESTARCH)))
     DASM_AFLAGS+= -D GPR64
   endif
-  ifneq (,$(findstring LJ_ARCH_BITS 64,$(TARGET_TESTARCH)))
-    DASM_AFLAGS+= -D GPR64 -D P64
-    ifneq (,$(findstring LJ_TARGET_PS3 1,$(TARGET_TESTARCH)))
-      DASM_AFLAGS+= -D PPE -D TOC
-    else
-      DASM_AFLAGS+= -D TOC
-    endif
-  endif
   ifeq (PS3,$(TARGET_SYS))
     DASM_AFLAGS+= -D PPE -D TOC
+  else
+    ifneq (,$(findstring LJ_ARCH_BITS 64,$(TARGET_TESTARCH)))
+      DASM_AFLAGS+= -D GPR64 -D P64 -D TOC
+    endif
   endif
 endif
 endif
