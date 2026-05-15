@@ -48,15 +48,16 @@
 |// Convenience macros for TOC handling.
 |.if TOC
 |// Linker needs a TOC patch area for every external call relocation.
-|.macro blex, target; bl extern target@plt; nop; .endmacro
-|.macro .toc, a, b; a, b; .endmacro
 |.if P64
+|.macro blex, target; bl extern target; nop; .endmacro
 |.define TOC_OFS,	 8
 |.define ENV_OFS,	16
 |.else
+|.macro blex, target; bl extern target@plt; nop; .endmacro
 |.define TOC_OFS,	4
 |.define ENV_OFS,	8
 |.endif
+|.macro .toc, a, b; a, b; .endmacro
 |.else  // No TOC.
 |.macro blex, target; bl extern target@plt; .endmacro
 |.macro .toc, a, b; .endmacro
