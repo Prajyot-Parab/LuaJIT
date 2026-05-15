@@ -370,6 +370,10 @@
 #define LJ_TARGET_GC64		1
 #define LJ_ARCH_NOJIT		1	/* NYI */
 #define LJ_ARCH_NOFFI		1	/* NYI */
+#if defined(_LITTLE_ENDIAN) && (!defined(_BYTE_ORDER) || (_BYTE_ORDER == _LITTLE_ENDIAN))
+/* ppc64le uses ELFv2 ABI - no function descriptors */
+#define LJ_ARCH_ELFV2		1
+#endif
 #endif
 
 #if _ARCH_PWR7

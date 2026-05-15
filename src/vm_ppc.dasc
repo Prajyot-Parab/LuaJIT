@@ -28,8 +28,12 @@
 |//         Must avoid (slow) micro-coded instructions.
 |
 |.if P64
+|// Note: ppc64le with ELFv2 ABI does NOT use function descriptors (TOC).
+|// Only enable TOC for big-endian PPC64 (PS3, old systems).
+|.if not ELFV2
 |.define TOC, 1
 |.define TOCENV, 1
+|.endif
 |.macro lpx, a, b, c; ldx a, b, c; .endmacro
 |.macro lp, a, b; ld a, b; .endmacro
 |.macro stp, a, b; std a, b; .endmacro

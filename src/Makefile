@@ -483,6 +483,9 @@ ifeq (ppc,$(TARGET_LJARCH))
   else
     ifneq (,$(findstring LJ_ARCH_BITS 64,$(TARGET_TESTARCH)))
       DASM_AFLAGS+= -D GPR64 -D P64
+      ifneq (,$(findstring LJ_ARCH_ELFV2 1,$(TARGET_TESTARCH)))
+        DASM_AFLAGS+= -D ELFV2
+      endif
     endif
   endif
 endif
