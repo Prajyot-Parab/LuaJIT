@@ -260,15 +260,29 @@ local condstack = {}
 -- Evaluate condition with a Lua expression. Substitutions already performed.
 local function cond_eval(cond)
   local func, err
+  -- Create environment with defines available as variables
+  local env = {}
+  for name, value in pairs(map_def) do
+    -- Convert string "1" to boolean true, empty string to false
+    if value == "1" or value == "true" then
+      env[name] = true
+    elseif value == "0" or value == "false" or value == "" then
+      env[name] = false
+    else
+      -- Try to convert to number, otherwise keep as string
+      local num = tonumber(value)
+      env[name] = num or value
+    end
+  end
+  
   if setfenv then
     func, err = loadstring("return "..cond, "=expr")
   else
-    -- No globals. All unknown identifiers evaluate to nil.
-    func, err = load("return "..cond, "=expr", "t", {})
+    func, err = load("return "..cond, "=expr", "t", env)
   end
   if func then
     if setfenv then
-      setfenv(func, {}) -- No globals. All unknown identifiers evaluate to nil.
+      setfenv(func, env)
     end
     local ok, res = pcall(func)
     if ok then
