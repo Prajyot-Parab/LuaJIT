@@ -650,7 +650,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  lwz L, SAVE_L
   |  .toc ld TOCREG, SAVE_TOC
   |   li TMP0, ~LJ_VMST_C
-  |  lwz GL:TMP1, L->glref
+  |  lp GL:TMP1, L->glref
   |   stw TMP0, GL:TMP1->vmstate
   |  b ->vm_leave_unw
   |
@@ -822,7 +822,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  // (lua_State *L, lua_CFunction func, void *ud, lua_CPFunction cp)
   |  saveregs
   |  mr L, CARG1
-  |   lwz TMP0, L:CARG1->stack
+  |   lp TMP0, L:CARG1->stack
   |  stw CARG1, SAVE_L
   |   lp TMP1, L->top
   |     lp DISPATCH, L->glref		// Setup pointer to dispatch table.
@@ -1449,16 +1449,16 @@ static void build_subroutines(BuildCtx *ctx)
   |.ffunc_1 getmetatable
   |  checktab CARG3; bne >6
   |1:  // Field metatable must be at same offset for GCtab and GCudata!
-  |  lwz TAB:CARG1, TAB:CARG1->metatable
+  |  lp TAB:CARG1, TAB:CARG1->metatable
   |2:
   |  li CARG3, LJ_TNIL
   |   cmplwi TAB:CARG1, 0
-  |  lwz STR:RC, DISPATCH_GL(gcroot[GCROOT_MMNAME+MM_metatable])(DISPATCH)
+  |  lp STR:RC, DISPATCH_GL(gcroot[GCROOT_MMNAME+MM_metatable])(DISPATCH)
   |   beq ->fff_restv
   |  lwz TMP0, TAB:CARG1->hmask
   |   li CARG3, LJ_TTAB			// Use metatable as default result.
   |  lwz TMP1, STR:RC->sid
-  |  lwz NODE:TMP2, TAB:CARG1->node
+  |  lp NODE:TMP2, TAB:CARG1->node
   |  and TMP1, TMP1, TMP0		// idx = str->sid & tab->hmask
   |  slwi TMP0, TMP1, 5
   |  slwi TMP1, TMP1, 3
@@ -1498,7 +1498,7 @@ static void build_subroutines(BuildCtx *ctx)
   |.ffunc_2 setmetatable
   |  // Fast path: no mt for table yet and not clearing the mt.
   |   checktab CARG3; bne ->fff_fallback
-  |  lwz TAB:TMP1, TAB:CARG1->metatable
+  |  lp TAB:TMP1, TAB:CARG1->metatable
   |   checktab CARG4; bne ->fff_fallback
   |  cmplwi TAB:TMP1, 0
   |   lbz TMP3, TAB:CARG1->marked
@@ -1593,7 +1593,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   lwz PC, FRAME_PC(BASE)
   |  bne ->fff_fallback
 #if LJ_52
-  |   lwz TAB:TMP2, TAB:CARG1->metatable
+  |   lp TAB:TMP2, TAB:CARG1->metatable
   |.if FPU
   |  lfd f0, CFUNC:RB->upvalue[0]
   |.else
@@ -1649,7 +1649,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  toint TMP2, FARG2, f0
   |.endif
   |   lwz TMP0, TAB:CARG1->asize
-  |   lwz TMP1, TAB:CARG1->array
+  |   lp TMP1, TAB:CARG1->array
   |.if not DUALNUM
   |  fadd FARG2, FARG2, FARG1
   |.endif
@@ -1708,7 +1708,7 @@ static void build_subroutines(BuildCtx *ctx)
   |   lwz PC, FRAME_PC(BASE)
   |  bne ->fff_fallback
 #if LJ_52
-  |   lwz TAB:TMP2, TAB:CARG1->metatable
+  |   lp TAB:TMP2, TAB:CARG1->metatable
   |.if FPU
   |  lfd f0, CFUNC:RB->upvalue[0]
   |.else
@@ -3698,7 +3698,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  // Different tables or userdatas. Need to check __eq metamethod.
     |  // Field metatable must be at same offset for GCtab and GCudata!
     |   mr CARG3, CARG4
-    |  lwz TAB:TMP2, TAB:CARG2->metatable
+    |  lp TAB:TMP2, TAB:CARG2->metatable
     |   li CARG4, 1-vk			// ne = 0 or 1.
     |  cmplwi TAB:TMP2, 0
     |  beq <1				// No metatable?
@@ -4032,7 +4032,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |2:
     |  checktab TMP0; bne ->vmeta_len
 #if LJ_52
-    |  lwz TAB:TMP2, TAB:CARG1->metatable
+    |  lp TAB:TMP2, TAB:CARG1->metatable
     |  cmplwi TAB:TMP2, 0
     |  bne >9
     |3:
@@ -4698,7 +4698,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |.if DUALNUM
     |  lwz TMP0, TAB:RB->asize
     |   bne cr1, >5
-    |   lwz TMP1, TAB:RB->array
+    |   lp TMP1, TAB:RB->array
     |  cmplw TMP0, RC
     |   slwi TMP2, RC, 3
     |.else
@@ -4710,7 +4710,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   lwz TMP0, TAB:RB->asize
     |    fsub f2, f2, TOBIT
     |  lwz TMP2, TMPD_LO
-    |   lwz TMP1, TAB:RB->array
+    |   lp TMP1, TAB:RB->array
     |    fcmpu cr1, f0, f2
     |  cmplw cr0, TMP0, TMP2
     |  crand 4*cr0+gt, 4*cr0+gt, 4*cr1+eq
@@ -4736,7 +4736,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ins_next2
     |
     |2:  // Check for __index if table value is nil.
-    |  lwz TAB:TMP2, TAB:RB->metatable
+    |  lp TAB:TMP2, TAB:RB->metatable
     |  cmplwi TAB:TMP2, 0
     |  beq <1				// No metatable: done.
     |  lbz TMP0, TAB:TMP2->nomm
@@ -4764,7 +4764,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  // TAB:RB = GCtab *, STR:RC = GCstr *, RA = dst*8
     |  lwz TMP0, TAB:RB->hmask
     |  lwz TMP1, STR:RC->sid
-    |  lwz NODE:TMP2, TAB:RB->node
+    |  lp NODE:TMP2, TAB:RB->node
     |  and TMP1, TMP1, TMP0		// idx = str->sid & tab->hmask
     |  slwi TMP0, TMP1, 5
     |  slwi TMP1, TMP1, 3
@@ -4791,7 +4791,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   li CARG2, LJ_TNIL
     |
     |5:  // Check for __index if table value is nil.
-    |  lwz TAB:TMP2, TAB:RB->metatable
+    |  lp TAB:TMP2, TAB:RB->metatable
     |  cmplwi TAB:TMP2, 0
     |  beq <3				// No metatable: done.
     |  lbz TMP0, TAB:TMP2->nomm
@@ -4806,7 +4806,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   lwz TAB:RB, 4(RB)
     |  checktab CARG1; bne ->vmeta_tgetb
     |  lwz TMP1, TAB:RB->asize
-    |   lwz TMP2, TAB:RB->array
+    |   lp TMP2, TAB:RB->array
     |  cmplw TMP0, TMP1; bge ->vmeta_tgetb
     |.if FPU
     |  lwzx TMP1, TMP2, RC
@@ -4827,7 +4827,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ins_next2
     |
     |5:  // Check for __index if table value is nil.
-    |  lwz TAB:TMP2, TAB:RB->metatable
+    |  lp TAB:TMP2, TAB:RB->metatable
     |  cmplwi TAB:TMP2, 0
     |  beq <1				// No metatable: done.
     |  lbz TMP2, TAB:TMP2->nomm
@@ -4843,12 +4843,12 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  add RC, BASE, RC
     |  lwz TMP0, TAB:CARG1->asize
     |  lwz CARG2, 4(RC)
-    |   lwz TMP1, TAB:CARG1->array
+    |   lp TMP1, TAB:CARG1->array
     |.else
     |  lfdx f0, BASE, RC
     |  lwz TMP0, TAB:CARG1->asize
     |  toint CARG2, f0
-    |   lwz TMP1, TAB:CARG1->array
+    |   lp TMP1, TAB:CARG1->array
     |.endif
     |  cmplw TMP0, CARG2
     |   slwi TMP2, CARG2, 3
@@ -4886,7 +4886,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |.if DUALNUM
     |  lwz TMP0, TAB:RB->asize
     |   bne cr1, >5
-    |   lwz TMP1, TAB:RB->array
+    |   lp TMP1, TAB:RB->array
     |  cmplw TMP0, RC
     |   slwi TMP0, RC, 3
     |.else
@@ -4898,7 +4898,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   lwz TMP0, TAB:RB->asize
     |    fsub f2, f2, TOBIT
     |  lwz TMP2, TMPD_LO
-    |   lwz TMP1, TAB:RB->array
+    |   lp TMP1, TAB:RB->array
     |    fcmpu cr1, f0, f2
     |  cmplw cr0, TMP0, TMP2
     |  crand 4*cr0+gt, 4*cr0+gt, 4*cr1+eq
@@ -4928,7 +4928,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ins_next
     |
     |3:  // Check for __newindex if previous value is nil.
-    |  lwz TAB:TMP2, TAB:RB->metatable
+    |  lp TAB:TMP2, TAB:RB->metatable
     |  cmplwi TAB:TMP2, 0
     |  beq <1				// No metatable: done.
     |  lbz TMP2, TAB:TMP2->nomm
@@ -4960,7 +4960,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  // TAB:RB = GCtab *, STR:RC = GCstr *, RA = src*8
     |  lwz TMP0, TAB:RB->hmask
     |  lwz TMP1, STR:RC->sid
-    |  lwz NODE:TMP2, TAB:RB->node
+    |  lp NODE:TMP2, TAB:RB->node
     |    stb ZERO, TAB:RB->nomm		// Clear metamethod cache.
     |  and TMP1, TMP1, TMP0		// idx = str->sid & tab->hmask
     |.if FPU
@@ -4996,7 +4996,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ins_next
     |
     |4:  // Check for __newindex if previous value is nil.
-    |  lwz TAB:TMP1, TAB:RB->metatable
+    |  lp TAB:TMP1, TAB:RB->metatable
     |  cmplwi TAB:TMP1, 0
     |  beq <2				// No metatable: done.
     |  lbz TMP0, TAB:TMP1->nomm
@@ -5011,7 +5011,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  // End of hash chain: key not found, add a new one.
     |
     |  // But check for __newindex first.
-    |  lwz TAB:TMP1, TAB:RB->metatable
+    |  lp TAB:TMP1, TAB:RB->metatable
     |   la CARG3, DISPATCH_GL(tmptv)(DISPATCH)
     |   stw PC, SAVE_PC
     |   mr CARG1, L
@@ -5048,7 +5048,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   lwz TAB:RB, 4(RB)
     |  checktab CARG1; bne ->vmeta_tsetb
     |  lwz TMP1, TAB:RB->asize
-    |   lwz TMP2, TAB:RB->array
+    |   lp TMP2, TAB:RB->array
     |    lbz TMP3, TAB:RB->marked
     |  cmplw TMP0, TMP1
     |.if FPU
@@ -5074,7 +5074,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  ins_next
     |
     |5:  // Check for __newindex if previous value is nil.
-    |  lwz TAB:TMP1, TAB:RB->metatable
+    |  lp TAB:TMP1, TAB:RB->metatable
     |  cmplwi TAB:TMP1, 0
     |  beq <1				// No metatable: done.
     |  lbz TMP1, TAB:TMP1->nomm
@@ -5095,13 +5095,13 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |    lbz TMP3, TAB:CARG2->marked
     |  lwz TMP0, TAB:CARG2->asize
     |  lwz CARG3, 4(RC)
-    |   lwz TMP1, TAB:CARG2->array
+    |   lp TMP1, TAB:CARG2->array
     |.else
     |  lfdx f0, BASE, RC
     |    lbz TMP3, TAB:CARG2->marked
     |  lwz TMP0, TAB:CARG2->asize
     |  toint CARG3, f0
-    |   lwz TMP1, TAB:CARG2->array
+    |   lp TMP1, TAB:CARG2->array
     |.endif
     |  andix. TMP2, TMP3, LJ_GC_BLACK	// isblack(table)
     |  bne >7
@@ -5146,7 +5146,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |    lbz TMP3, TAB:CARG2->marked
     |  cmplw CARG3, TMP2
     |   add TMP2, RA, TMP0
-    |   lwz TMP0, TAB:CARG2->array
+    |   lp TMP0, TAB:CARG2->array
     |  bgt >5
     |   add TMP1, TMP1, TMP0
     |    andix. TMP0, TMP3, LJ_GC_BLACK	// isblack(table)
@@ -5313,7 +5313,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  lwz TAB:RB, -12(RA)
     |  lwz RC, -4(RA)			// Get index from control var.
     |  lwz TMP0, TAB:RB->asize
-    |  lwz TMP1, TAB:RB->array
+    |  lp TMP1, TAB:RB->array
     |   addi PC, PC, 4
     |1:  // Traverse array part.
     |  cmplw RC, TMP0
@@ -5359,7 +5359,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |5:  // Traverse hash part.
     |  lwz TMP1, TAB:RB->hmask
     |  sub RC, RC, TMP0
-    |   lwz TMP2, TAB:RB->node
+    |   lp TMP2, TAB:RB->node
     |6:
     |  cmplw RC, TMP1			// End of iteration? Branch to ITERL+1.
     |   slwi TMP3, RC, 5
